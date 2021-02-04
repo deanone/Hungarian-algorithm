@@ -1,10 +1,31 @@
+import sys
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 
 def create_cost_matrix(n_workers, n_jobs, low, high):
+	"""
+	This function creates a cost matrix for specific numbers of workers and jobs with random integer values from the [low, high) interval.
+	If the number of jobs is greater than the number of workers, then the rows of the matrix are cloned to get a new augmented square matrix.
+
+	:param n_workers: the number of workers
+	:type: int
+	:param n_jobs: the number of jobs
+	:type: int
+	:param low: the lower bound of the interval from which the random integer values are drawn
+	:type: int
+	:param high: the upper bound of the interval from which the random integer values are drawn
+	:type: int
+	:return: the initial cost matrix (square or rectangular)
+	:rtype: numpy.ndarray
+	:return: the final (augmented) cost matrix (square)
+	:rtype: numpy.ndarray
+	:return: the matching between indexes of initial with indexes of the final cost matrix
+	:rtype: dict
+
+	"""
 	C_ind = {}
-	if n_workers == n_jobs:
+	if n_workers >= n_jobs:
 		C = np.random.randint(low, high, size=(n_workers, n_jobs))
 		for i in range(n_workers):
 			C_ind[i] = i
@@ -27,55 +48,59 @@ def create_cost_matrix(n_workers, n_jobs, low, high):
 			C = np.vstack((C, row_to_stack))
 			C_ind[C.shape[0] - 1] = rand_worker_id
 		return C_init, C, C_ind
-	else:	#	more workers than jobs, TODO: implement C_ind dictionary generation
-		C = np.random.randint(low, high, size=(n_workers, n_jobs))
-		multiples = int(n_workers / n_jobs)
-		n_stacks = multiples - 1
-		C_init = C.copy()
-		for j in range(n_stacks):
-			C = np.hstack((C, C_init))
-		remaining_cols = n_workers - (multiples * n_jobs)
-		for j in range(remaining_cols):
-			rand_job_id = np.random.randint(0, n_jobs)
-			col_to_stack = C_init[:, rand_job_id].reshape((C_init[:, rand_job_id].shape[0], 1))
-			C = np.hstack((C, col_to_stack))
-		return C_init, C, C_ind
 
 
 def main():
+	# Initial seed with specific number for results reproducibility
 	np.random.seed(42)
-	low = 1
-	high = 100
-	n_workers = 4
-	n_jobs = 10
-	C_init, C, C_ind = create_cost_matrix(n_workers, n_jobs, low, high)
+	
+	if (len(sys.argv) == 1):
+		print('4 command line arguments are required:')
+		print('n_workers: the number of workers')
+		print('n_jobs: the number of jobs')
+		print('low: the lower bound of the interval from which the random integer values are drawn')
+		print('high: the upper bound of the interval from which the random integer values are drawn')
+	else:
+		# Read command line arguments
+		n_workers = int(sys.argv[1])
+		n_jobs = int(sys.argv[2])
+		low = int(sys.argv[3])
+		high = int(sys.argv[4])
+		
+		# Create cost matrix
+		C_init, C, C_ind = create_cost_matrix(n_workers, n_jobs, low, high)
 
-	print('Initial cost matrix: \n', C_init)
-	print('<--------------------->\n')
-	print('Cost matrix with cloned workers: \n', C)
-	print('<--------------------->\n')
+		# Print initial and augmented (if applied) cost matrix
+		print('Initial cost matrix: \n', C_init)
+		print('<--------------------->\n')
+		print('Cost matrix with cloned workers: \n', C)
+		print('<--------------------->\n')
 
-	workers, jobs = linear_sum_assignment(C)	#	Hungarian algorithm
-	final_assignment = {}
-	for i in range(n_workers):
-		final_assignment[i] = []
+		# Hungarian algorithm
+		workers, jobs = linear_sum_assignment(C)	
 
-	for k in range(len(workers)):
-		worker_id = C_ind[workers[k]]
-		if jobs[k] not in final_assignment[worker_id]:
-			final_assignment[worker_id].append(jobs[k])
+		# Create final assignment
+		final_assignment = {}
+		for i in range(n_workers):
+			final_assignment[i] = []
 
-	print('Final assignment:')
-	for i in range(n_workers):
-		print('{}:'.format(i), end=' ')
-		assigned_jobs = final_assignment[i]
-		k  = 0
-		for j in assigned_jobs:
-			print(j, end='')
-			if (len(assigned_jobs) > 1) and (k != (len(assigned_jobs) - 1)):
-				print(',', end='')
-			k += 1
-		print('')
+		for k in range(len(workers)):
+			worker_id = C_ind[workers[k]]
+			if jobs[k] not in final_assignment[worker_id]:
+				final_assignment[worker_id].append(jobs[k])
+
+		# Print final assignment
+		print('Final assignment:')
+		for i in range(n_workers):
+			print('{}:'.format(i), end=' ')
+			assigned_jobs = final_assignment[i]
+			k  = 0
+			for j in assigned_jobs:
+				print(j, end='')
+				if (len(assigned_jobs) > 1) and (k != (len(assigned_jobs) - 1)):
+					print(',', end='')
+				k += 1
+			print('')
 
 
 if __name__ == '__main__':
