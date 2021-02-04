@@ -12,7 +12,7 @@ even in the case in which the number of jobs is greater than the number of worke
 
 The cost matrix is generated using dimensions provided by the user, and contains random integer values drawn from an interval whose bounds are provided by the user.
 
-When the number of jobs is greater than the number of workers, the cloning trick is used, namely the rows of the original cost matrix are duplicate in order to reach the number of columns. In this way, the cost matrix becomes square from rectangular. Each row in the original cost matrix is duplicated/cloned the same number of times.
+When the number of jobs is greater than the number of workers, the cloning trick is used, namely the rows of the original cost matrix are duplicated in order to reach the number of columns. In this way, the cost matrix becomes square from rectangular. Each row in the original cost matrix is duplicated/cloned the same number of times.
 
 The Hungarian algorithm gets the final cost matrix, and returns the assignment of jobs to workers. For the implementation of Hungarian algorithm, the Python implementation in scipy package was used.
 

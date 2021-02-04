@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+import time
 
 
 def create_cost_matrix(n_workers, n_jobs, low, high):
@@ -77,7 +78,9 @@ def main():
 		print('<--------------------->\n')
 
 		# Hungarian algorithm
+		start_time = time.time()
 		workers, jobs = linear_sum_assignment(C)	
+		elapsed_time = time.time() - start_time
 
 		# Create final assignment
 		final_assignment = {}
@@ -88,6 +91,13 @@ def main():
 			worker_id = C_ind[workers[k]]
 			if jobs[k] not in final_assignment[worker_id]:
 				final_assignment[worker_id].append(jobs[k])
+
+		# Calculate minimum assignment cost
+		minimum_assignment_cost = 0
+		for i in range(n_workers):
+			assigned_jobs = final_assignment[i]
+			for j in assigned_jobs:
+				minimum_assignment_cost += np.sum(C_init[:, j])
 
 		# Print final assignment
 		print('Final assignment:')
@@ -101,6 +111,10 @@ def main():
 					print(',', end='')
 				k += 1
 			print('')
+
+		print('<--------------------->\n')
+		print('Minimum assignment cost: ', minimum_assignment_cost)
+		print('Elapsed time (sec.): ', round(elapsed_time, 3))
 
 
 if __name__ == '__main__':
