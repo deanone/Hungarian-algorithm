@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -67,15 +68,18 @@ def main():
 		n_jobs = int(sys.argv[2])
 		low = int(sys.argv[3])
 		high = int(sys.argv[4])
+
+		screen_height, screen_width = os.popen('stty size', 'r').read().split()
+		screen_width = int(screen_width)
 		
 		# Create cost matrix
 		C_init, C, C_ind = create_cost_matrix(n_workers, n_jobs, low, high)
 
 		# Print initial and augmented (if applied) cost matrix
 		print('Initial cost matrix: \n', C_init)
-		print('<--------------------->\n')
-		print('Cost matrix with cloned workers: \n', C)
-		print('<--------------------->\n')
+		print('<' + (screen_width - 2) * '-' + '>')
+		print('Final cost matrix: \n', C)
+		print('<' + (screen_width - 2) * '-' + '>')
 
 		# Hungarian algorithm
 		start_time = time.time()
@@ -112,7 +116,7 @@ def main():
 				k += 1
 			print('')
 
-		print('<--------------------->\n')
+		print('<' + (screen_width - 2) * '-' + '>')
 		print('Minimum assignment cost: ', minimum_assignment_cost)
 		print('Elapsed time (sec.): ', round(elapsed_time, 3))
 
